@@ -1,0 +1,64 @@
+# Configuración del Proyecto de Aprendizaje Automático - Supermercado
+# ===================================================================
+
+# Paths principales
+paths:
+  data_raw: "data/raw/"
+  data_processed: "data/processed/"
+  data_interim: "data/interim/"
+  models: "models/"
+  results: "results/"
+  logs: "logs/"
+
+# Configuración de logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Configuración de EDA
+eda:
+  missing_threshold: 0.5  # Umbral para eliminar variables con muchos faltantes
+  outlier_method: "iqr"   # Método para detección de outliers
+
+# Configuración de preprocesamiento
+preprocessing:
+  imputation_strategy: "knn"  # Estrategia de imputación (knn, mean, median)
+  scaling_method: "standard"  # Método de escalado (standard, minmax, robust)
+
+# Configuración de clustering
+clustering:
+  kmeans:
+    max_clusters: 10
+    random_state: 42
+  evaluation_metrics:
+    - "silhouette"
+    - "calinski_harabasz"
+    - "davies_bouldin"
+
+# Configuración de clasificación
+classification:
+  target_variable: "respuesta"  # Variable objetivo para clasificación
+  test_size: 0.2
+  random_state: 42
+  evaluation_metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "roc_auc"
+
+# Configuración de regresión
+regression:
+  target_variable: "gasto_total"  # Variable objetivo para regresión
+  test_size: 0.2
+  random_state: 42
+  evaluation_metrics:
+    - "mae"
+    - "mse"
+    - "rmse"
+    - "r2_score"
+
+# Configuración general
+general:
+  random_state: 42
+  test_size: 0.2
