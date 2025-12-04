@@ -2,87 +2,96 @@
 Script: Análisis de Valores Faltantes
 =====================================
 
-OBJETIVO:
----------
-Este script analiza en detalle los valores faltantes en el dataset, identificando
-patrones, tipos de faltantes (MCAR, MAR, MNAR) y estrategias de manejo apropiadas
-para cada variable.
-
-FUNCIONALIDADES PRINCIPALES:
-----------------------------
-1. Identificación de valores faltantes por variable
-2. Análisis de patrones de faltantes
-3. Visualización de la matriz de faltantes
-4. Análisis de correlación entre faltantes
-5. Identificación del tipo de faltantes (MCAR, MAR, MNAR)
-6. Estrategias de imputación recomendadas
-7. Generación de reporte de faltantes
-
-DATOS DE ENTRADA:
------------------
-- data/raw/proy_supermercado_dev.csv: Dataset original
-- data/interim/data_structure_info.json: Información de estructura
-- data/interim/descriptive_stats_numeric.csv: Estadísticas numéricas
-
-DATOS DE SALIDA:
-----------------
-- data/interim/missing_values_report.csv: Reporte de valores faltantes
-- data/interim/missing_patterns_analysis.json: Análisis de patrones
-- data/interim/imputation_strategies.json: Estrategias de imputación
-- results/visualizations/eda_plots/missing_values_plots.png: Visualizaciones
-
-GUARDADO DE DATOS INTERMEDIOS:
-------------------------------
-Este script guarda automáticamente:
-1. Reporte detallado de valores faltantes por variable
-2. Análisis de patrones de faltantes con metadatos
-3. Estrategias recomendadas de imputación
-4. Visualizaciones de la matriz de faltantes
-5. Metadatos del análisis para trazabilidad
-
-DEPENDENCIAS:
--------------
-- pandas: Manipulación de datos
-- numpy: Operaciones numéricas
-- matplotlib/seaborn: Visualizaciones
-- missingno: Análisis de valores faltantes
-- src.utils.file_utils: Utilidades para guardado
-- src.utils.logger: Sistema de logging
-
-EJECUCIÓN:
-----------
-python scripts/01_EDA/03_missing_values_analysis.py
-
-NOTAS:
-------
-- Requiere la ejecución previa de scripts de EDA anteriores
-- Genera estrategias de imputación para preprocesamiento
-- Incluye análisis de patrones complejos de faltantes
-- Proporciona base para decisiones de limpieza de datos
+Este módulo concentra el análisis de valores faltantes previo a la imputación,
+basado en el paso 1.1.5 del notebook. Trabaja sobre el dataset crudo,
+genera reportes y visualizaciones, y documenta cantidades y porcentajes
+de nulos por variable.
 """
 
-# Importaciones necesarias (comentadas para documentación)
-# import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# import missingno as msno
-# from src.utils.file_utils import save_intermediate_data
-# from src.utils.logger import setup_logger
+from __future__ import annotations
 
-def main():
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+# Directorio de datos intermedios (sin depender de imports de paquete)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_INTERIM_DIR = PROJECT_ROOT / "data" / "interim"
+
+
+def _missing_report(df: pd.DataFrame) -> pd.DataFrame:
+    missing_df = (
+        df.isna()
+        .sum()
+        .to_frame("missing")
+        .assign(missing_pct=lambda x: (x["missing"] / len(df) * 100).round(2))
+        .sort_values("missing", ascending=False)
+    )
+    return missing_df
+
+
+def _plot_missing_bar(missing_df: pd.DataFrame, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    top = missing_df[missing_df["missing"] > 0]
+    if top.empty:
+        return
+
+    plt.figure(figsize=(10, 6))
+    sns.barplot(
+        y=top.index,
+        x=top["missing_pct"],
+        palette="mako",
+    )
+    plt.xlabel("% de valores faltantes")
+    plt.ylabel("Variable")
+    plt.title("Valores faltantes por variable")
+    plt.tight_layout()
+
+    fig_path = output_dir / "missing_values_bar.png"
+    plt.savefig(fig_path, dpi=120)
+    plt.close()
+
+
+def run_missing_values_analysis(df: pd.DataFrame, output_dir: Path) -> None:
     """
-    Función principal del script de análisis de valores faltantes
-    
-    FLUJO DE TRABAJO:
-    1. Carga de datos y metadatos
-    2. Identificación de valores faltantes
-    3. Análisis de patrones de faltantes
-    4. Determinación de tipo de faltantes
-    5. Generación de estrategias de imputación
-    6. Guardado de resultados intermedios
+    Analiza valores faltantes sobre el dataset crudo.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset original sin imputar.
+    output_dir : Path
+        Carpeta donde se guardarán las figuras generadas por este módulo.
     """
-    pass
+    print("=== 1.1.5 Análisis de valores faltantes ===")
+
+    DATA_INTERIM_DIR.mkdir(parents=True, exist_ok=True)
+
+    missing_df = _missing_report(df)
+    csv_path = DATA_INTERIM_DIR / "eda_missing_detailed.csv"
+    missing_df.to_csv(csv_path)
+
+    print("Resumen de nulos por columna (top 15):")
+    print(missing_df.head(15))
+    print(f"Reporte completo de nulos guardado en: {csv_path}")
+
+    _plot_missing_bar(missing_df, output_dir)
+
+
+def main() -> None:
+    """
+    Punto de entrada opcional para ejecutar solo este módulo.
+    """
+    import main_eda  # type: ignore
+
+    df_raw = main_eda.load_data()
+    figures_dir = Path(__file__).resolve().parent / "figures" / "missing"
+    run_missing_values_analysis(df_raw, figures_dir)
+
 
 if __name__ == "__main__":
     main()
