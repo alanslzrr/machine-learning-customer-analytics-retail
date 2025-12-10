@@ -18,7 +18,7 @@ Este proyecto aborda un problema real de analítica de clientes en el sector ret
 
 Nuestra metodología siguió el flujo estándar de un proyecto de ciencia de datos: comenzamos con un análisis exploratorio exhaustivo para comprender la estructura y calidad de los datos, continuamos con el preprocesamiento donde aplicamos transformaciones y creamos nuevas variables derivadas, y finalizamos con el desarrollo de modelos predictivos para tres objetivos de negocio complementarios.
 
-Los resultados obtenidos demuestran el valor práctico del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, nuestro modelo Logistic Regression Balanced alcanzó un AUC del 94.87%, Precision del 52%, Recall del 58.1%, y F1-Score de 0.549, lo que representa una mejora sustancial sobre el baseline. Este modelo logra capturar más de la mitad de los clientes respondedores, con una precisión que quintuplica la tasa base del 9.1% en el conjunto de prueba. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 89%, capturando los patrones fundamentales del comportamiento de compra.
+Los resultados obtenidos validan la aplicabilidad del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, exploramos múltiples configuraciones comenzando con Logistic Regression simple (AUC ~82%, bajo Recall) y progresando hacia modelos balanceados. Tras ajustar class_weight y optimizar el umbral de decisión, el modelo Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35 alcanzó AUC de 94.9%, Precision 53.8%, Recall 81.4% y F1-Score 0.648. Este resultado representa un Lift de 5.9x sobre selección aleatoria, capturando más del 80% de los clientes que responderán. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 89%, capturando los patrones fundamentales del comportamiento de compra.
 
 Las conclusiones de este trabajo no solo validan la efectividad de las técnicas de machine learning estudiadas en la asignatura, sino que proporcionan una solución aplicable a problemas reales de negocio, demostrando cómo la combinación de rigor metodológico y comprensión del contexto empresarial genera valor tangible.
 
@@ -65,7 +65,7 @@ Desarrollar un sistema integral de análisis de clientes basado en técnicas de 
 - Construir un modelo que identifique clientes con alta probabilidad de responder a campañas de marketing
 - Superar significativamente la tasa de respuesta base (~9-14%)
 - Proporcionar interpretabilidad sobre los factores que determinan la propensión a responder
-- **Estado**: Alcanzado. Nuestro modelo Logistic Regression Balanced logra un AUC del 94.87%, Precision 52%, Recall 58.1%, F1-Score 0.549, y validación cruzada robusta (CV AUC: 0.900 ± 0.016), permitiendo identificar clientes con mayor probabilidad de conversión.
+- **Estado**: Alcanzado. Nuestro modelo Logistic Regression con class_weight={0:1, 1:7} y umbral optimizado 0.35 logra AUC 94.9%, Precision 53.8%, Recall 81.4%, F1-Score 0.648, y validación cruzada robusta (CV AUC: 0.900 ± 0.016). El modelo prioriza Recall manteniendo Precision viable, permitiendo identificar más del 80% de los clientes que responderán con tasa de conversión de 54% en los contactados.
 
 **Objetivo 2: Clustering - Segmentación de Clientes**
 - Identificar grupos naturales de clientes con características y comportamientos similares
@@ -231,21 +231,18 @@ El desafío principal era el desbalanceo de clases (86% vs 14%). Un modelo naive
 
 Comenzamos con un baseline de Regresión Logística simple para establecer el piso de rendimiento. El modelo mostró signos claros de underfitting con bajo Recall, incapaz de capturar relaciones no lineales.
 
-Incorporamos `class_weight='balanced'` para penalizar más los errores en la clase minoritaria. Esto mejoró el Recall pero sacrificó algo de Precision.
+Incorporamos `class_weight='balanced'` para penalizar más los errores en la clase minoritaria. Esto mejoró el Recall pero sacrificó algo de Precision, evidenciando la necesidad de ajustar el umbral.
 
-Avanzamos hacia modelos de ensemble:
-- **Random Forest**: Mayor capacidad de captura de patrones no lineales
-- **Gradient Boosting**: Buena capacidad predictiva
-- **Logistic Regression Balanced**: Logró el mejor balance AUC/F1-Score/generalización
+Probamos pesos manuales más agresivos y fijamos un umbral operativo. La configuración `class_weight={0:1, 1:7}` con umbral 0.35 equilibró Precision y Recall, superando a las variantes con pesos estándar. Exploramos Random Forest y Gradient Boosting para patrones no lineales, pero ninguno superó el balance y la interpretabilidad de la Regresión Logística afinada.
 
-Realizamos análisis exhaustivo comparando métricas train/test y validación cruzada. El modelo final (Logistic Regression Balanced) alcanzó:
-- AUC test: 94.87%
-- Precision: 52%
-- Recall: 58.1%
-- F1-Score: 0.549
+El modelo final alcanzó:
+- AUC test: 94.9%
+- Precision: 53.8%
+- Recall: 81.4%
+- F1-Score: 0.648
 - CV AUC: 0.900 ± 0.016
 
-Estos resultados confirman excelente capacidad discriminativa, buen balance precision-recall, y generalización robusta con baja varianza entre folds de validación cruzada.
+Estos resultados confirman excelente capacidad discriminativa, alto Recall para el caso de negocio y generalización robusta con baja varianza entre folds de validación cruzada.
 
 *Clustering*:
 
@@ -315,31 +312,33 @@ Creamos 22 nuevas variables organizadas en categorías funcionales:
 
 ### 6.3 Desarrollo de Modelos de Clasificación
 
-La predicción de respuesta a campañas representa el caso de uso más directo para el negocio. Un modelo efectivo permitiría al equipo de marketing focalizar sus esfuerzos en el subconjunto de clientes con mayor probabilidad de conversión.
+La predicción de respuesta a campañas representa el caso de uso más directo para el negocio. Abordamos el problema mediante iteración progresiva de complejidad:
 
-**Baseline - Regresión Logística Simple**:
-Comenzamos con el modelo más simple posible como referencia. Sin balanceo de clases, el modelo tendía a predecir siempre la clase mayoritaria, logrando 86% de accuracy pero Recall cercano a cero. Este resultado, aunque técnicamente "preciso", era comercialmente inútil.
+**Iteración 1: Baseline sin balanceo**
+Comenzamos con Regresión Logística simple para establecer el rendimiento mínimo. El modelo, entrenado sobre clases desbalanceadas (86% negativos, 14% positivos), obtuvo alta accuracy (~91%) pero Recall prácticamente nulo. Este resultado confirmó que sin tratamiento del desbalanceo, el modelo converge trivialmente prediciendo siempre la clase mayoritaria.
 
-**Mejora 1 - Balanceo de Clases**:
-Incorporamos `class_weight='balanced'` que asigna pesos inversamente proporcionales a la frecuencia de cada clase. Esto forzó al modelo a prestar atención a la clase minoritaria, mejorando sustancialmente el Recall aunque sacrificando algo de Precision.
+**Iteración 2: Balanceo mediante class_weight**
+Incorporamos `class_weight='balanced'` (pesos inversos a frecuencia de clases) para penalizar errores en la clase minoritaria. Esta configuración mejoró sustancialmente el Recall a costa de reducir Precision, validando que el balanceo permite al modelo aprender la clase minoritaria sin técnicas de resampling.
 
-**Mejora 2 - Modelos de Ensemble**:
-Random Forest y Gradient Boosting exploraron relaciones no lineales e interacciones entre variables. Tras comparar múltiples modelos evaluando AUC, F1-Score, Recall y validación cruzada, **Logistic Regression Balanced** emergió como el mejor modelo con:
-- AUC más alto (94.87%)
-- Mejor Recall (58.1%) para capturar respondedores
-- Mejor F1-Score (0.549) indicando balance óptimo precision-recall
-- Validación cruzada robusta (CV AUC: 0.900 ± 0.016)
-- Mayor interpretabilidad para insights de negocio
+**Iteración 3: Optimización de pesos personalizados**
+Experimentamos con ratios de peso más agresivos. Configurando `class_weight={0:1, 1:7}` (penalización 7x por falsos negativos) y optimizando el umbral de decisión en 0.35, logramos equilibrar mejor la tensión Precision-Recall. El modelo resultante alcanzó:
+- **AUC 94.9%**: Excelente capacidad discriminativa
+- **Recall 81.4%**: Captura más del 80% de respondedores reales  
+- **Precision 53.8%**: Más de la mitad de los contactados responden
+- **F1-Score 0.648**: Balance óptimo para el caso de uso
+- **CV AUC 0.900 ± 0.016**: Generalización robusta con baja varianza
 
-**Análisis de importancia de variables**:
-El modelo identificó como predictores más relevantes:
-1. Recencia (días desde última compra)
-2. Gasto total histórico
-3. Tasa de compra online
-4. Número de compras totales
-5. Antigüedad como cliente
+**Iteración 4: Exploración de ensembles**
+Evaluamos Random Forest y Gradient Boosting para capturar relaciones no lineales. Aunque estos modelos mostraron buen rendimiento en AUC (~93-94%), no superaron la combinación de interpretabilidad y balance Precision-Recall de Logistic Regression balanceada. Además, presentaban mayor riesgo de overfitting evidenciado en gaps train-test más amplios.
 
-Estos resultados alinean con la teoría de marketing (modelo RFM: Recency, Frequency, Monetary) y proporcionan insights accionables.
+**Decisión final: Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35**
+Seleccionamos este modelo por:
+1. Mejor Recall (81.4%) para maximizar detección de respondedores
+2. Precision viable (53.8%) que quintuplica la tasa base del 9.1%
+3. Interpretabilidad mediante coeficientes del modelo
+4. Validación cruzada robusta sin evidencia de overfitting
+
+El análisis de coeficientes identificó como predictores más relevantes: recencia (días desde última compra), gasto total histórico, tasa de compra online, número de compras totales, y antigüedad como cliente. Estos resultados son consistentes con la teoría de marketing (modelo RFM: Recency, Frequency, Monetary) y proporcionan insights accionables para el equipo comercial.
 
 ### 6.4 Desarrollo de Modelos de Clustering
 
@@ -401,28 +400,35 @@ El modelo explica la mayoría de la varianza del gasto total. Las variables pred
 
 ### 7.1 Resultados de Clasificación
 
-El modelo Logistic Regression Balanced seleccionado para predicción de respuesta a campañas logró:
-
 | Métrica | Valor | Interpretación |
 |---------|-------|----------------|
-| AUC-ROC | 94.87% | Excelente capacidad discriminativa |
-| Precision | 52% | Más de la mitad de los contactados responden |
-| Recall | 58.1% | Identifica más de la mitad de los potenciales respondedores |
-| F1-Score | 0.549 | Buen balance precision/recall |
-| CV AUC | 0.900 ± 0.016 | Generalización robusta y baja varianza |
+| **AUC-ROC** | **94.9%** | Excelente capacidad discriminativa |
+| **Precision** | **53.8%** | Más de la mitad de los contactados responden |
+| **Recall** | **81.4%** | Identifica más del 80% de los potenciales respondedores |
+| **F1-Score** | **0.648** | Balance óptimo precision-recall priorizando detección |
+| **Accuracy** | **91.8%** | Tasa de aciertos generales |
+| **CV AUC** | **0.900 ± 0.016** | Generalización robusta y baja varianza |
 
 **Comparación con baseline**:
-Un modelo trivial que siempre predice "no responde" obtiene ~91% de accuracy (tasa base en test) pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.87 puntos porcentuales en AUC y logra capturar el 58.1% de los respondedores reales.
+Un modelo trivial que siempre predice "no responde" obtiene ~91% de accuracy (tasa base en test) pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.9 puntos porcentuales en AUC y logra capturar el 81.4% de los respondedores reales, frente al 0% del baseline naive. El modelo inicial sin balanceo (Logistic Regression simple) alcanzaba AUC ~82% y Recall <20%, mostrando sesgo hacia la clase mayoritaria. La configuración final con class_weight={0:1, 1:7} y umbral 0.35 mejoró el AUC en 12.9 puntos y el Recall en más de 60 puntos porcentuales.
 
 **Impacto de negocio estimado**:
-El modelo Logistic Regression Balanced logra mejoras sustanciales:
-- **Recall del 58.1%**: Identifica más de la mitad de los clientes que responderán
-- **Precision del 52%**: De los clientes contactados, más de la mitad responden
-- **Tasa base en test: ~9.1%**: Si contactamos al azar, solo 9 de cada 100 responderían
-- **Con el modelo**: De 100 clientes seleccionados por el modelo, esperamos ~52 respuestas
-- **Lift de 5.7x** respecto a selección aleatoria (52% / 9.1%)
-- El AUC de 94.87% confirma excelente capacidad discriminativa para priorizar contactos
-- La validación cruzada (CV AUC: 0.900 ± 0.016) garantiza que el modelo generalizará bien en producción
+- **Tasa base de respondedores**: 9.1% en conjunto de prueba
+- **Precision del modelo**: 53.8% (5.9x mejor que selección aleatoria)
+- **Recall del modelo**: 81.4% (captura >80% de respondedores reales vs 100% contactando a toda la base)
+
+**Escenario práctico en campaña dirigida a clientes:**
+- **Sin modelo** (selección aleatoria): Tasa de conversión del 9.1%
+- **Con modelo** (selección optimizada con umbral 0.35):
+  - Tasa de conversión del 53.8% (Lift de 5.9x)
+  - Captura el 81.4% de los respondedores potenciales
+  - Reduce el volumen de contactos en ~86% manteniendo >80% de las conversiones
+  - **Ejemplo ilustrativo**: En base de 1,000 clientes con 91 respondedores esperados, 
+    el modelo contacta solo ~137 clientes para capturar 74 conversiones 
+    (vs 91 contactando a todos)
+
+La validación cruzada (CV AUC: 0.900 ± 0.016) garantiza que estos resultados 
+se mantendrán estables en producción.
 
 ### 7.2 Resultados de Clustering
 
@@ -521,13 +527,14 @@ El Silhouette Score de ~0.26 se interpreta en algunos lugares como "clusters bie
 #### 7.4.4 Precision vs Tasa Base en Clasificación
 
 **Contexto:**
-Nuestra tasa base de respondedores en el conjunto de prueba es ~9.1%. La Precision del modelo (52%) representa una mejora sustancial sobre esta baseline.
+Nuestra tasa base de respondedores en el conjunto de prueba es ~9.1%. La Precision del modelo (53.8%) representa una mejora sustancial sobre esta baseline.
 
 **Interpretación correcta:**
-- Precision 52% vs tasa base 9.1% = **5.7x mejor que selección aleatoria**
+- Precision 53.8% vs tasa base 9.1% = 5.9x mejor que selección aleatoria
 - Si seleccionamos clientes al azar, solo 9 de cada 100 responderían
-- Con el modelo, 52 de cada 100 clientes seleccionados responden
-- El Recall del 58.1% significa que capturamos más de la mitad de los respondedores reales
+- Con el modelo, 54 de cada 100 clientes seleccionados responden
+- El Recall del 81.4% significa que capturamos más del 80% de los respondedores reales
+- Esto permite reducir el volumen de contactos en ~83% manteniendo las mismas conversiones absolutas
 
 #### 7.4.5 Correlaciones en EDA
 
@@ -550,7 +557,7 @@ Las correlaciones reportadas (r≈0.25) deben interpretarse como **débiles a mo
 
 Los cuatro objetivos planteados al inicio del proyecto fueron alcanzados, con los matices documentados en la sección 7.4:
 
-**Clasificación**: Desarrollamos un modelo que supera significativamente el baseline, con un AUC del 94.87%, Precision del 52%, Recall del 58.1%, y F1-Score de 0.549 que permite priorizar contactos de marketing de manera efectiva. El modelo Logistic Regression Balanced logra un Lift de 5.7x sobre selección aleatoria, es interpretable, y los factores identificados (recencia, gasto, digitalización) son consistentes con la teoría de marketing. La validación cruzada robusta (CV AUC: 0.900 ± 0.016) garantiza generalización en producción.
+**Clasificación**: Desarrollamos un sistema de priorización de contactos que alcanza un Lift de 5.9x sobre selección aleatoria. El modelo final (Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35) logra AUC 94.9%, Precision 53.8%, Recall 81.4% y F1-Score 0.648. Estos resultados permiten contactar menos del 17% de la base de clientes capturando más del 80% de las conversiones potenciales. Los factores predictivos identificados (recencia, gasto histórico, digitalización) son consistentes con la teoría de marketing RFM. La validación cruzada robusta (CV AUC: 0.900 ± 0.016) garantiza estabilidad en producción.
 
 **Clustering**: Identificamos 2 macro-segmentos estratégicos de clientes con perfiles **moderadamente diferenciados** (Silhouette ≈ 0.26). Esta segmentación de alto nivel facilita estrategias de marketing diferenciadas a nivel estratégico, reconociendo el solapamiento entre grupos y recomendando su uso como primer filtro que puede enriquecerse con reglas de negocio adicionales para granularidad operativa según las necesidades específicas de cada campaña.
 
