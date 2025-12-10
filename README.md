@@ -18,7 +18,7 @@ Este proyecto aborda un problema real de analítica de clientes en el sector ret
 
 Nuestra metodología siguió el flujo estándar de un proyecto de ciencia de datos: comenzamos con un análisis exploratorio exhaustivo para comprender la estructura y calidad de los datos, continuamos con el preprocesamiento donde aplicamos transformaciones y creamos nuevas variables derivadas, y finalizamos con el desarrollo de modelos predictivos para tres objetivos de negocio complementarios.
 
-Los resultados obtenidos validan la aplicabilidad del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, exploramos múltiples configuraciones comenzando con Logistic Regression simple (AUC ~82%, bajo Recall) y progresando hacia modelos balanceados. Tras ajustar class_weight y optimizar el umbral de decisión, el modelo Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35 alcanzó AUC de 94.9%, Precision 53.8%, Recall 81.4% y F1-Score 0.648. Este resultado representa un Lift de 5.9x sobre selección aleatoria, capturando más del 80% de los clientes que responderán. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 89%, capturando los patrones fundamentales del comportamiento de compra.
+Los resultados obtenidos validan la aplicabilidad del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, exploramos múltiples configuraciones comenzando con Logistic Regression simple (AUC ~82%, bajo Recall) y progresando hacia modelos balanceados. Tras ajustar class_weight y optimizar el umbral de decisión, el modelo Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35 alcanzó AUC de 95.4%, Precision 50%, Recall 81% y F1-Score 0.62. Este resultado representa un Lift de 5.5x sobre selección aleatoria, capturando más del 80% de los clientes que responderán. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 86.7%, capturando los patrones fundamentales del comportamiento de compra.
 
 Las conclusiones de este trabajo no solo validan la efectividad de las técnicas de machine learning estudiadas en la asignatura, sino que proporcionan una solución aplicable a problemas reales de negocio, demostrando cómo la combinación de rigor metodológico y comprensión del contexto empresarial genera valor tangible.
 
@@ -65,7 +65,7 @@ Desarrollar un sistema integral de análisis de clientes basado en técnicas de 
 - Construir un modelo que identifique clientes con alta probabilidad de responder a campañas de marketing
 - Superar significativamente la tasa de respuesta base (~9-14%)
 - Proporcionar interpretabilidad sobre los factores que determinan la propensión a responder
-- **Estado**: Alcanzado. Nuestro modelo Logistic Regression con class_weight={0:1, 1:7} y umbral optimizado 0.35 logra AUC 94.9%, Precision 53.8%, Recall 81.4%, F1-Score 0.648, y validación cruzada robusta (CV AUC: 0.900 ± 0.016). El modelo prioriza Recall manteniendo Precision viable, permitiendo identificar más del 80% de los clientes que responderán con tasa de conversión de 54% en los contactados.
+ - **Estado**: Alcanzado. Nuestro modelo Logistic Regression con class_weight={0:1, 1:7} y umbral optimizado 0.35 logra AUC 95.4%, Precision 50%, Recall 81%, F1-Score 0.62, y validación cruzada robusta (CV AUC: 0.895 ± 0.018). El modelo prioriza Recall manteniendo Precision viable, permitiendo identificar más del 80% de los clientes que responderán con tasa de conversión de 50% en los contactados.
 
 **Objetivo 2: Clustering - Segmentación de Clientes**
 - Identificar grupos naturales de clientes con características y comportamientos similares
@@ -77,7 +77,7 @@ Desarrollar un sistema integral de análisis de clientes basado en técnicas de 
 - Estimar el gasto total esperado de cada cliente para planificación financiera
 - Identificar los factores que más influyen en el nivel de gasto
 - Detectar clientes cuyo gasto real difiere del esperado como indicador de cambio de comportamiento
-- **Estado**: Alcanzado. El modelo Gradient Boosting alcanza un R² del 89%, capturando los drivers fundamentales del gasto.
+- **Estado**: Alcanzado. El modelo Gradient Boosting alcanza un R² del 86.7%, capturando los drivers fundamentales del gasto.
 
 **Objetivo 4: Metodológico**
 - Aplicar un proceso riguroso de análisis exploratorio, preprocesamiento y modelado
@@ -236,11 +236,11 @@ Incorporamos `class_weight='balanced'` para penalizar más los errores en la cla
 Probamos pesos manuales más agresivos y fijamos un umbral operativo. La configuración `class_weight={0:1, 1:7}` con umbral 0.35 equilibró Precision y Recall, superando a las variantes con pesos estándar. Exploramos Random Forest y Gradient Boosting para patrones no lineales, pero ninguno superó el balance y la interpretabilidad de la Regresión Logística afinada.
 
 El modelo final alcanzó:
-- AUC test: 94.9%
-- Precision: 53.8%
-- Recall: 81.4%
-- F1-Score: 0.648
-- CV AUC: 0.900 ± 0.016
+- AUC test: 95.4%
+- Precision: 50%
+- Recall: 81%
+- F1-Score: 0.62
+- CV AUC: 0.895 ± 0.018
 
 Estos resultados confirman excelente capacidad discriminativa, alto Recall para el caso de negocio y generalización robusta con baja varianza entre folds de validación cruzada.
 
@@ -264,7 +264,7 @@ Exploramos también algoritmos basados en densidad (DBSCAN, HDBSCAN) para compar
 
 Para predecir el gasto total anual, excluimos cuidadosamente las variables que pudieran constituir data leakage (gastos individuales por categoría, proporciones de gasto).
 
-El modelo de Regresión Lineal baseline ya mostró buen ajuste, y Gradient Boosting capturó relaciones adicionales alcanzando R²=89%.
+El modelo de Regresión Lineal baseline ya mostró buen ajuste, y Gradient Boosting capturó relaciones adicionales alcanzando R²=86.7%.
 
 Verificamos que variables como `ticket_promedio` y `compras_totales` tienen relación lógica con el gasto sin constituir leakage, ya que serían conocidas en escenarios de predicción real.
 
@@ -322,19 +322,19 @@ Incorporamos `class_weight='balanced'` (pesos inversos a frecuencia de clases) p
 
 **Iteración 3: Optimización de pesos personalizados**
 Experimentamos con ratios de peso más agresivos. Configurando `class_weight={0:1, 1:7}` (penalización 7x por falsos negativos) y optimizando el umbral de decisión en 0.35, logramos equilibrar mejor la tensión Precision-Recall. El modelo resultante alcanzó:
-- **AUC 94.9%**: Excelente capacidad discriminativa
-- **Recall 81.4%**: Captura más del 80% de respondedores reales  
-- **Precision 53.8%**: Más de la mitad de los contactados responden
-- **F1-Score 0.648**: Balance óptimo para el caso de uso
-- **CV AUC 0.900 ± 0.016**: Generalización robusta con baja varianza
+- **AUC 95.4%**: Excelente capacidad discriminativa
+- **Recall 81%**: Captura más del 80% de respondedores reales  
+- **Precision 50%**: Más de la mitad de los contactados responden
+- **F1-Score 0.62**: Balance óptimo para el caso de uso
+- **CV AUC 0.895 ± 0.018**: Generalización robusta con baja varianza
 
 **Iteración 4: Exploración de ensembles**
 Evaluamos Random Forest y Gradient Boosting para capturar relaciones no lineales. Aunque estos modelos mostraron buen rendimiento en AUC (~93-94%), no superaron la combinación de interpretabilidad y balance Precision-Recall de Logistic Regression balanceada. Además, presentaban mayor riesgo de overfitting evidenciado en gaps train-test más amplios.
 
 **Decisión final: Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35**
 Seleccionamos este modelo por:
-1. Mejor Recall (81.4%) para maximizar detección de respondedores
-2. Precision viable (53.8%) que quintuplica la tasa base del 9.1%
+1. Mejor Recall (81%) para maximizar detección de respondedores
+2. Precision viable (50%) que quintuplica la tasa base del 9.1%
 3. Interpretabilidad mediante coeficientes del modelo
 4. Validación cruzada robusta sin evidencia de overfitting
 
@@ -382,13 +382,13 @@ Las variables predictoras finales incluyeron características demográficas, fre
 **Resultados**:
 | Modelo | R² Train | R² Test | MAE Test | RMSE Test |
 |--------|----------|---------|----------|----------|
-| Regresión Lineal | 87% | 89% | 96 | 186 |
-| Random Forest | 88% | 89% | 95 | 185 |
-| Gradient Boosting | 91% | 89% | 96 | 186 |
+| Regresión Lineal | 81.8% | 80.7% | 179 | 248 |
+| Random Forest | 97.2% | 88.4% | 101 | 193 |
+| Gradient Boosting | 98.8% | 86.7% | 127 | 206 |
 
 Los modelos muestran buen rendimiento con gaps controlados entre train y test, indicando buena generalización.
 
-**Interpretación del R² del 89%**:
+**Interpretación del R² del 86.7%**:
 El modelo explica la mayoría de la varianza del gasto total. Las variables predictoras tienen relación lógica con el comportamiento de compra:
 - `ticket_promedio` y `compras_totales` reflejan patrones de gasto históricos
 - En escenarios de predicción real, estas métricas estarían disponibles del historial del cliente
@@ -402,32 +402,32 @@ El modelo explica la mayoría de la varianza del gasto total. Las variables pred
 
 | Métrica | Valor | Interpretación |
 |---------|-------|----------------|
-| **AUC-ROC** | **94.9%** | Excelente capacidad discriminativa |
-| **Precision** | **53.8%** | Más de la mitad de los contactados responden |
-| **Recall** | **81.4%** | Identifica más del 80% de los potenciales respondedores |
-| **F1-Score** | **0.648** | Balance óptimo precision-recall priorizando detección |
+| **AUC-ROC** | **95.4%** | Excelente capacidad discriminativa |
+| **Precision** | **50%** | Más de la mitad de los contactados responden |
+| **Recall** | **81%** | Identifica más del 80% de los potenciales respondedores |
+| **F1-Score** | **0.62** | Balance óptimo precision-recall priorizando detección |
 | **Accuracy** | **91.8%** | Tasa de aciertos generales |
-| **CV AUC** | **0.900 ± 0.016** | Generalización robusta y baja varianza |
+| **CV AUC** | **0.895 ± 0.018** | Generalización robusta y baja varianza |
 
 **Comparación con baseline**:
-Un modelo trivial que siempre predice "no responde" obtiene ~91% de accuracy (tasa base en test) pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.9 puntos porcentuales en AUC y logra capturar el 81.4% de los respondedores reales, frente al 0% del baseline naive. El modelo inicial sin balanceo (Logistic Regression simple) alcanzaba AUC ~82% y Recall <20%, mostrando sesgo hacia la clase mayoritaria. La configuración final con class_weight={0:1, 1:7} y umbral 0.35 mejoró el AUC en 12.9 puntos y el Recall en más de 60 puntos porcentuales.
+Un modelo trivial que siempre predice "no responde" obtiene ~91% de accuracy (tasa base en test) pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.9 puntos porcentuales en AUC y logra capturar el 81% de los respondedores reales, frente al 0% del baseline naive. El modelo inicial sin balanceo (Logistic Regression simple) alcanzaba AUC ~82% y Recall <20%, mostrando sesgo hacia la clase mayoritaria. La configuración final con class_weight={0:1, 1:7} y umbral 0.35 mejoró el AUC en 12.9 puntos y el Recall en más de 60 puntos porcentuales.
 
 **Impacto de negocio estimado**:
 - **Tasa base de respondedores**: 9.1% en conjunto de prueba
-- **Precision del modelo**: 53.8% (5.9x mejor que selección aleatoria)
-- **Recall del modelo**: 81.4% (captura >80% de respondedores reales vs 100% contactando a toda la base)
+- **Precision del modelo**: 50% (5.5x mejor que selección aleatoria)
+- **Recall del modelo**: 81% (captura >80% de respondedores reales vs 100% contactando a toda la base)
 
 **Escenario práctico en campaña dirigida a clientes:**
 - **Sin modelo** (selección aleatoria): Tasa de conversión del 9.1%
 - **Con modelo** (selección optimizada con umbral 0.35):
-  - Tasa de conversión del 53.8% (Lift de 5.9x)
-  - Captura el 81.4% de los respondedores potenciales
+  - Tasa de conversión del 50% (Lift de 5.5x)
+  - Captura el 81% de los respondedores potenciales
   - Reduce el volumen de contactos en ~86% manteniendo >80% de las conversiones
   - **Ejemplo ilustrativo**: En base de 1,000 clientes con 91 respondedores esperados, 
     el modelo contacta solo ~137 clientes para capturar 74 conversiones 
     (vs 91 contactando a todos)
 
-La validación cruzada (CV AUC: 0.900 ± 0.016) garantiza que estos resultados 
+La validación cruzada (CV AUC: 0.895 ± 0.018) garantiza que estos resultados 
 se mantendrán estables en producción.
 
 ### 7.2 Resultados de Clustering
@@ -454,9 +454,9 @@ El modelo Gradient Boosting para predicción de gasto logró:
 
 | Métrica | Valor |
 |---------|-------|
-| R² Test | 89.26% |
-| MAE Test | 95.61 |
-| RMSE Test | 185.82 |
+| R² Test | 86.7% |
+| MAE Test | 127.44 |
+| RMSE Test | 206.47 |
 
 **Variables más predictivas** (por importancia):
 1. ticket_promedio (indicador directo de capacidad de gasto)
@@ -466,8 +466,8 @@ El modelo Gradient Boosting para predicción de gasto logró:
 5. antiguedad_dias (lealtad)
 
 **Validación estadística**:
-- R² del 89% explica la mayoría de la varianza
-- MAE de 96 euros es interpretable para planificación
+- R² del 86.7% explica la mayoría de la varianza
+- MAE de ~127 euros es interpretable para planificación
 - Análisis de residuos confirma validez del modelo
 - Sin sesgos sistemáticos ni heterocedasticidad
 
@@ -493,13 +493,13 @@ Los pipelines de preprocesamiento deben construirse para evitar data leakage aut
 #### 7.4.2 Interpretación Realista del R² en Regresión
 
 **Problema identificado:**
-Las métricas iniciales mostraban un R² del 99%, pero tras corregir la escala de predicción y eliminar variables duplicadas, el R² real es del 89%.
+Las métricas iniciales mostraban un R² del 99%, pero tras corregir la escala de predicción y eliminar variables duplicadas, el R² real es del 86.7%.
 
 **Interpretación correcta:**
-- El modelo explica el 89% de la varianza del gasto total, lo cual es un resultado sólido
-- Las variables predictoras (ticket_promedio, compras_totales, ingresos) tienen relación lógica con el gasto pero no constituyen data leakage
+- El modelo explica el 86.7% de la varianza del gasto total, lo cual es un resultado sólido
+- Las variables predictoras (compras_totales, ingresos, recencia, antiguedad_dias, num_visitas_web_mes) tienen relación lógica con el gasto sin incurrir en leakage
 - En escenarios de producción, estas métricas estarían disponibles del historial del cliente
-- El MAE de 96 euros representa un error aceptable para planificación financiera
+- El MAE de ~127 euros representa un error aceptable para planificación financiera
 
 **Validación estadística:**
 - Análisis de residuos confirma comportamiento saludable
@@ -527,13 +527,13 @@ El Silhouette Score de ~0.26 se interpreta en algunos lugares como "clusters bie
 #### 7.4.4 Precision vs Tasa Base en Clasificación
 
 **Contexto:**
-Nuestra tasa base de respondedores en el conjunto de prueba es ~9.1%. La Precision del modelo (53.8%) representa una mejora sustancial sobre esta baseline.
+Nuestra tasa base de respondedores en el conjunto de prueba es ~9.1%. La Precision del modelo (50%) representa una mejora sustancial sobre esta baseline.
 
 **Interpretación correcta:**
-- Precision 53.8% vs tasa base 9.1% = 5.9x mejor que selección aleatoria
+- Precision 50% vs tasa base 9.1% = 5.5x mejor que selección aleatoria
 - Si seleccionamos clientes al azar, solo 9 de cada 100 responderían
 - Con el modelo, 54 de cada 100 clientes seleccionados responden
-- El Recall del 81.4% significa que capturamos más del 80% de los respondedores reales
+- El Recall del 81% significa que capturamos más del 80% de los respondedores reales
 - Esto permite reducir el volumen de contactos en ~83% manteniendo las mismas conversiones absolutas
 
 #### 7.4.5 Correlaciones en EDA
@@ -557,11 +557,11 @@ Las correlaciones reportadas (r≈0.25) deben interpretarse como **débiles a mo
 
 Los cuatro objetivos planteados al inicio del proyecto fueron alcanzados, con los matices documentados en la sección 7.4:
 
-**Clasificación**: Desarrollamos un sistema de priorización de contactos que alcanza un Lift de 5.9x sobre selección aleatoria. El modelo final (Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35) logra AUC 94.9%, Precision 53.8%, Recall 81.4% y F1-Score 0.648. Estos resultados permiten contactar menos del 17% de la base de clientes capturando más del 80% de las conversiones potenciales. Los factores predictivos identificados (recencia, gasto histórico, digitalización) son consistentes con la teoría de marketing RFM. La validación cruzada robusta (CV AUC: 0.900 ± 0.016) garantiza estabilidad en producción.
+**Clasificación**: Desarrollamos un sistema de priorización de contactos que alcanza un Lift de 5.5x sobre selección aleatoria. El modelo final (Logistic Regression con class_weight={0:1, 1:7} y umbral 0.35) logra AUC 95.4%, Precision 50%, Recall 81% y F1-Score 0.62. Estos resultados permiten contactar menos del 17% de la base de clientes capturando más del 80% de las conversiones potenciales. Los factores predictivos identificados (recencia, gasto histórico, digitalización) son consistentes con la teoría de marketing RFM. La validación cruzada robusta (CV AUC: 0.895 ± 0.018) garantiza estabilidad en producción.
 
 **Clustering**: Identificamos 2 macro-segmentos estratégicos de clientes con perfiles **moderadamente diferenciados** (Silhouette ≈ 0.26). Esta segmentación de alto nivel facilita estrategias de marketing diferenciadas a nivel estratégico, reconociendo el solapamiento entre grupos y recomendando su uso como primer filtro que puede enriquecerse con reglas de negocio adicionales para granularidad operativa según las necesidades específicas de cada campaña.
 
-**Regresión**: El modelo alcanza un R² del 89% con métricas en escala correcta (MAE ≈96 euros), explicando la mayoría de la varianza del gasto total. Las variables predictoras tienen relación lógica con el comportamiento de compra y permiten estimaciones fiables para planificación financiera.
+**Regresión**: El modelo alcanza un R² del 86.7% con métricas en escala correcta (MAE ≈127 euros), explicando la mayoría de la varianza del gasto total. Las variables predictoras tienen relación lógica con el comportamiento de compra y permiten estimaciones fiables para planificación financiera.
 
 **Metodológico**: Aplicamos un proceso estructurado de análisis, documentando cada decisión incluyendo las limitaciones identificadas. Los notebooks incluyen notas de transparencia metodológica y correcciones de escala implementadas.
 
