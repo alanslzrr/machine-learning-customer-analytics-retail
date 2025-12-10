@@ -33,3 +33,5 @@ black>=22.6.0
 flake8>=5.0.0
 
 hdbscan>=0.8.38
+
+yellowbrick>=1.4.post2

@@ -18,7 +18,7 @@ Este proyecto aborda un problema real de analítica de clientes en el sector ret
 
 Nuestra metodología siguió el flujo estándar de un proyecto de ciencia de datos: comenzamos con un análisis exploratorio exhaustivo para comprender la estructura y calidad de los datos, continuamos con el preprocesamiento donde aplicamos transformaciones y creamos nuevas variables derivadas, y finalizamos con el desarrollo de modelos predictivos para tres objetivos de negocio complementarios.
 
-Los resultados obtenidos demuestran el valor práctico del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, nuestro modelo Logistic Regression Balanced alcanzó un AUC del 94.87% con accuracy de 92.19%, lo que representa un Lift de 4.5x respecto al azar (Precision del 63.64% frente a una tasa base del 14%), permitiendo triplicar la eficiencia de las campañas al dejar de contactar a clientes con nula probabilidad de respuesta. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 89%, capturando los patrones fundamentales del comportamiento de compra.
+Los resultados obtenidos demuestran el valor práctico del aprendizaje automático en contextos empresariales. Para la predicción de respuesta a campañas de marketing, nuestro modelo Logistic Regression Balanced alcanzó un AUC del 94.87%, Precision del 52%, Recall del 58.1%, y F1-Score de 0.549, lo que representa una mejora sustancial sobre el baseline. Este modelo logra capturar más de la mitad de los clientes respondedores, con una precisión que quintuplica la tasa base del 9.1% en el conjunto de prueba. En el ámbito de la segmentación, identificamos 2 macro-segmentos estratégicos de clientes con perfiles moderadamente diferenciados (Silhouette ≈ 0.26) que facilitan estrategias de marketing diferenciadas a alto nivel. Finalmente, nuestro modelo de regresión para predecir el gasto anual logró un R² del 89%, capturando los patrones fundamentales del comportamiento de compra.
 
 Las conclusiones de este trabajo no solo validan la efectividad de las técnicas de machine learning estudiadas en la asignatura, sino que proporcionan una solución aplicable a problemas reales de negocio, demostrando cómo la combinación de rigor metodológico y comprensión del contexto empresarial genera valor tangible.
 
@@ -63,9 +63,9 @@ Desarrollar un sistema integral de análisis de clientes basado en técnicas de 
 
 **Objetivo 1: Clasificación - Predicción de Respuesta a Campañas**
 - Construir un modelo que identifique clientes con alta probabilidad de responder a campañas de marketing
-- Superar significativamente la tasa de respuesta base del 14%
+- Superar significativamente la tasa de respuesta base (~9-14%)
 - Proporcionar interpretabilidad sobre los factores que determinan la propensión a responder
-- **Estado**: Alcanzado. Nuestro modelo Logistic Regression Balanced logra un AUC del 94.87% (Accuracy 92.19%, Precision 63.64%, Recall 32.56%, F1 0.43) y permite identificar clientes con mayor probabilidad de conversión.
+- **Estado**: Alcanzado. Nuestro modelo Logistic Regression Balanced logra un AUC del 94.87%, Precision 52%, Recall 58.1%, F1-Score 0.549, y validación cruzada robusta (CV AUC: 0.900 ± 0.016), permitiendo identificar clientes con mayor probabilidad de conversión.
 
 **Objetivo 2: Clustering - Segmentación de Clientes**
 - Identificar grupos naturales de clientes con características y comportamientos similares
@@ -110,7 +110,7 @@ Ensemble de árboles de decisión que combina múltiples modelos débiles para c
 Técnica de boosting que construye modelos de manera secuencial, donde cada nuevo modelo corrige los errores del anterior. A diferencia de Random Forest que promedia predicciones independientes, Gradient Boosting optimiza una función de pérdida de forma iterativa, logrando generalmente mejor rendimiento a costa de mayor sensibilidad a hiperparámetros (Friedman, 2001).
 
 #### K-Means
-Algoritmo de particionamiento que divide las observaciones en K clusters minimizando la varianza intra-cluster (inercia). Requiere especificar K a priori, lo cual determinamos mediante el método del codo y el Silhouette Score. Es computacionalmente eficiente pero asume clusters esféricos (MacQueen, 1967).
+Algoritmo de particionamiento que divide las observaciones en K clusters minimizando la varianza intra-cluster (inercia). Requiere especificar K a priori, lo cual determinamos mediante KElbowVisualizer de Yellowbrick que automatiza la detección del punto óptimo usando el método del codo y el Silhouette Score. Es computacionalmente eficiente pero asume clusters esféricos (MacQueen, 1967).
 
 #### DBSCAN y HDBSCAN
 Algoritmos de clustering basados en densidad que identifican regiones de alta concentración de puntos. A diferencia de K-Means, no requieren especificar el número de clusters y pueden detectar grupos de forma arbitraria. Además, identifican outliers como "ruido" (Ester et al., 1996; Campello et al., 2013).
@@ -141,8 +141,8 @@ Algoritmos de clustering basados en densidad que identifican regiones de alta co
 - **RMSE (Error Cuadrático Medio)**: Penaliza más los errores grandes que MAE.
 
 **Para Clustering**:
-- **Silhouette Score**: Mide simultáneamente cohesión intra-cluster y separación inter-cluster. Valores entre -1 y 1, donde valores altos indican clusters bien definidos.
-- **Inercia (WCSS)**: Suma de distancias al cuadrado dentro de cada cluster. El "método del codo" busca el punto donde añadir clusters deja de reducir significativamente la inercia.
+- **Silhouette Score**: Mide simultáneamente cohesión intra-cluster y separación inter-cluster. Valores entre -1 y 1, donde valores altos indican clusters bien definidos. Valores >0.7 son fuertes, 0.5-0.7 razonables, 0.25-0.5 moderados con solapamiento, y <0.25 débiles.
+- **Inercia (WCSS)**: Suma de distancias al cuadrado dentro de cada cluster. El "método del codo" busca el punto donde añadir clusters deja de reducir significativamente la inercia. Utilizamos KElbowVisualizer de Yellowbrick para detección automática del punto óptimo.
 
 ### 4.5 Referencias Bibliográficas
 
@@ -175,7 +175,8 @@ Desarrollamos el proyecto íntegramente en Python utilizando Jupyter Notebooks d
 
 - **Pandas y NumPy**: Manipulación y análisis de datos
 - **Scikit-learn**: Implementación de algoritmos de ML, preprocesamiento y métricas
-- **Matplotlib y Seaborn**: Visualización de datos
+- **Matplotlib y Seaborn**: Visualización de datos y análisis exploratorio
+- **Yellowbrick**: Visualizadores de machine learning para diagnóstico de modelos y clustering
 - **SciPy**: Pruebas estadísticas complementarias
 - **HDBSCAN**: Clustering jerárquico basado en densidad
 
@@ -237,17 +238,30 @@ Avanzamos hacia modelos de ensemble:
 - **Gradient Boosting**: Buena capacidad predictiva
 - **Logistic Regression Balanced**: Logró el mejor balance AUC/F1-Score/generalización
 
-Realizamos análisis exhaustivo comparando métricas train/test. El modelo final (Logistic Regression Balanced) alcanzó AUC=94.87%, Accuracy=92.19%, Precision=63.64%, Recall=32.56%, F1=0.43, mostrando buena generalización.
+Realizamos análisis exhaustivo comparando métricas train/test y validación cruzada. El modelo final (Logistic Regression Balanced) alcanzó:
+- AUC test: 94.87%
+- Precision: 52%
+- Recall: 58.1%
+- F1-Score: 0.549
+- CV AUC: 0.900 ± 0.016
+
+Estos resultados confirman excelente capacidad discriminativa, buen balance precision-recall, y generalización robusta con baja varianza entre folds de validación cruzada.
 
 *Clustering*:
 
 Para la segmentación aplicamos los datos preprocesados y reducidos con PCA.
 
-El método del codo no mostró un codo claro; el mejor Silhouette (≈0.26) se obtuvo con **K=2**. Entrenamos K-Means con K=2 y asignamos cada cliente a un segmento, documentando el solapamiento moderado entre grupos.
+Utilizamos **KElbowVisualizer de Yellowbrick** para determinar el número óptimo de clusters de manera automatizada. El visualizador con métrica de distorsión (inercia) identificó K=4 como punto de inflexión óptimo (score: 44,966.26), mientras que el análisis con métrica Silhouette sugirió K=2 (score: 0.2629).
+
+Esta discrepancia metodológica es instructiva: el método del codo minimiza varianza intra-cluster sin considerar separación, mientras Silhouette balancea cohesión y separación. **Optamos por K=2** siguiendo el principio de parsimonia, ya que maximiza la separabilidad relativa (aunque moderada) y proporciona una macro-segmentación estratégica más interpretable para el negocio.
+
+Caracterizamos cada cluster mediante análisis detallado de distribuciones utilizando **visualizaciones avanzadas**:
+- **Swarmplot**: Muestra cada observación individual, revelando patrones de densidad y outliers
+- **Boxenplot**: Variante mejorada del boxplot que muestra múltiples cuantiles (no solo Q1-Q3), capturando mejor la forma completa de la distribución
+
+Estas visualizaciones confirmaron que las variables financieras (ingresos, gasto_total) separan bien los clusters, mientras que variables demográficas (edad) y comportamentales (recencia) tienen solapamiento considerable, explicando el Silhouette Score moderado de 0.2629.
 
 Exploramos también algoritmos basados en densidad (DBSCAN, HDBSCAN) para comparar. Aunque estos métodos identifican outliers como "ruido", para nuestro caso de negocio preferimos K-Means porque asigna todos los clientes a segmentos accionables.
-
-Caracterizamos cada cluster mediante análisis de centroides y distribuciones por variable, asignando nombres descriptivos basados en sus perfiles.
 
 *Regresión*:
 
@@ -310,7 +324,12 @@ Comenzamos con el modelo más simple posible como referencia. Sin balanceo de cl
 Incorporamos `class_weight='balanced'` que asigna pesos inversamente proporcionales a la frecuencia de cada clase. Esto forzó al modelo a prestar atención a la clase minoritaria, mejorando sustancialmente el Recall aunque sacrificando algo de Precision.
 
 **Mejora 2 - Modelos de Ensemble**:
-Random Forest y Gradient Boosting exploraron relaciones no lineales e interacciones entre variables. Sin embargo, tras comparar métricas en train/test y considerar el trade-off precision/recall, **Logistic Regression Balanced** emergió como el mejor modelo con el balance óptimo entre AUC, F1-Score y generalización.
+Random Forest y Gradient Boosting exploraron relaciones no lineales e interacciones entre variables. Tras comparar múltiples modelos evaluando AUC, F1-Score, Recall y validación cruzada, **Logistic Regression Balanced** emergió como el mejor modelo con:
+- AUC más alto (94.87%)
+- Mejor Recall (58.1%) para capturar respondedores
+- Mejor F1-Score (0.549) indicando balance óptimo precision-recall
+- Validación cruzada robusta (CV AUC: 0.900 ± 0.016)
+- Mayor interpretabilidad para insights de negocio
 
 **Análisis de importancia de variables**:
 El modelo identificó como predictores más relevantes:
@@ -326,16 +345,25 @@ Estos resultados alinean con la teoría de marketing (modelo RFM: Recency, Frequ
 
 La segmentación de clientes busca identificar grupos con características similares para personalizar estrategias.
 
-**Determinación del número óptimo de clusters**:
-- El método del codo no mostró un codo claro; priorizamos la métrica.
-- El Silhouette Score máximo se alcanzó con **K=2** (≈0.26), indicando calidad moderada y solapamiento.
-- Se opta por pocos segmentos accionables y se documenta la naturaleza exploratoria de la segmentación.
+**Determinación del número óptimo de clusters con Yellowbrick**:
+- Aplicamos **KElbowVisualizer** con dos métricas complementarias:
+  - **Distorsión (inercia)**: Identificó K=4 como punto óptimo (score: 44,966.26)
+  - **Silhouette**: Identificó K=2 como punto óptimo (score: 0.2629)
+- Esta discrepancia refleja objetivos diferentes: inercia minimiza varianza intra-cluster; Silhouette balancea cohesión y separación
+- **Decisión: K=2** por principio de parsimonia, maximización de separabilidad relativa, e interpretabilidad operacional
+- Silhouette de 0.2629 indica calidad moderada con solapamiento significativo entre grupos
 
 **Resultados del K-Means con K=2**:
-- Silhouette ≈ 0.2629 (moderado, solapamiento entre grupos).
-- Segmento A: mayor gasto histórico y mayor adopción de canal online.
-- Segmento B: gasto menor y preferencia por canal tradicional.
-- Uso recomendado: guiar hipótesis de marketing y validar con señales adicionales antes de convertirlos en cortes operativos.
+- Silhouette ≈ 0.2629 (moderado, solapamiento entre grupos)
+- Segmento 0 (Cluster Alto Valor): ingresos mediana ~75,000, gasto ~1,200-1,400 (diferencia 6x vs Cluster 1)
+- Segmento 1 (Cluster Valor Estándar): ingresos mediana ~35,000, gasto ~200-250
+
+**Validación mediante visualizaciones avanzadas**:
+- **Swarmplot + Boxenplot** revelaron que:
+  - Variables financieras (ingresos, gasto_total) separan fuertemente los clusters
+  - Variables demográficas (edad) y comportamentales (recencia) tienen solapamiento casi total
+  - Esta separación variable por característica explica el Silhouette moderado
+- Uso recomendado: macro-segmentación estratégica, enriquecer con reglas de negocio para granularidad operativa
 
 **Comparación con métodos basados en densidad**:
 DBSCAN devolvió 1 cluster + ~8% ruido; HDBSCAN 2 clusters + ~31% ruido (Silhouette ≈0.22 sin ruido). Elegimos K-Means porque asigna todos los clientes y mantiene interpretabilidad, pero el alto ruido en métodos de densidad confirma que los límites entre segmentos son difusos.
@@ -378,21 +406,23 @@ El modelo Logistic Regression Balanced seleccionado para predicción de respuest
 | Métrica | Valor | Interpretación |
 |---------|-------|----------------|
 | AUC-ROC | 94.87% | Excelente capacidad discriminativa |
-| Accuracy | 92.19% | Alta tasa de acierto global |
-| Precision | 63.64% | Dos tercios de los contactados responden |
-| Recall | 32.56% | Identifica un tercio de los potenciales respondedores |
-| F1-Score | 0.4308 | Balance moderado precision/recall |
+| Precision | 52% | Más de la mitad de los contactados responden |
+| Recall | 58.1% | Identifica más de la mitad de los potenciales respondedores |
+| F1-Score | 0.549 | Buen balance precision/recall |
+| CV AUC | 0.900 ± 0.016 | Generalización robusta y baja varianza |
 
 **Comparación con baseline**:
-Un modelo trivial que siempre predice "no responde" obtiene 86% de accuracy pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.87 puntos porcentuales en AUC y permite identificar clientes con alta probabilidad de conversión.
+Un modelo trivial que siempre predice "no responde" obtiene ~91% de accuracy (tasa base en test) pero 0% de Recall y 50% de AUC. Nuestro modelo representa una mejora de 44.87 puntos porcentuales en AUC y logra capturar el 58.1% de los respondedores reales.
 
-**Impacto de negocio estimado (Lift)**:
-El modelo Logistic Regression Balanced logra un **Lift de 4.5x** respecto al azar:
-- Precision 63.64% vs tasa base 14% = **4.5x mejor que selección aleatoria**
-- Si contactamos 100 clientes al azar, esperaríamos 14 respuestas
-- Con el modelo, de 100 clientes seleccionados, esperamos 64 respuestas
-- Esto permite **triplicar la eficiencia** de campañas al evitar contactar clientes con nula probabilidad de respuesta
+**Impacto de negocio estimado**:
+El modelo Logistic Regression Balanced logra mejoras sustanciales:
+- **Recall del 58.1%**: Identifica más de la mitad de los clientes que responderán
+- **Precision del 52%**: De los clientes contactados, más de la mitad responden
+- **Tasa base en test: ~9.1%**: Si contactamos al azar, solo 9 de cada 100 responderían
+- **Con el modelo**: De 100 clientes seleccionados por el modelo, esperamos ~52 respuestas
+- **Lift de 5.7x** respecto a selección aleatoria (52% / 9.1%)
 - El AUC de 94.87% confirma excelente capacidad discriminativa para priorizar contactos
+- La validación cruzada (CV AUC: 0.900 ± 0.016) garantiza que el modelo generalizará bien en producción
 
 ### 7.2 Resultados de Clustering
 
@@ -491,12 +521,13 @@ El Silhouette Score de ~0.26 se interpreta en algunos lugares como "clusters bie
 #### 7.4.4 Precision vs Tasa Base en Clasificación
 
 **Contexto:**
-Nuestra tasa base de respondedores es ~14%. La Precision del modelo (63.64%) representa una mejora significativa sobre esta baseline.
+Nuestra tasa base de respondedores en el conjunto de prueba es ~9.1%. La Precision del modelo (52%) representa una mejora sustancial sobre esta baseline.
 
 **Interpretación correcta:**
-- Precision 63.64% vs baseline 14% = **4.5x mejor que azar**
-- Si seleccionamos clientes al azar, solo 14% responderían
-- Con el modelo, 63.64% de los seleccionados responden
+- Precision 52% vs tasa base 9.1% = **5.7x mejor que selección aleatoria**
+- Si seleccionamos clientes al azar, solo 9 de cada 100 responderían
+- Con el modelo, 52 de cada 100 clientes seleccionados responden
+- El Recall del 58.1% significa que capturamos más de la mitad de los respondedores reales
 
 #### 7.4.5 Correlaciones en EDA
 
@@ -519,7 +550,7 @@ Las correlaciones reportadas (r≈0.25) deben interpretarse como **débiles a mo
 
 Los cuatro objetivos planteados al inicio del proyecto fueron alcanzados, con los matices documentados en la sección 7.4:
 
-**Clasificación**: Desarrollamos un modelo que supera significativamente el baseline, con un AUC del 94.87% y accuracy del 92.19% que permite priorizar contactos de marketing de manera efectiva. El modelo Logistic Regression Balanced es interpretable y los factores identificados (recencia, gasto, digitalización) son consistentes con la teoría de marketing.
+**Clasificación**: Desarrollamos un modelo que supera significativamente el baseline, con un AUC del 94.87%, Precision del 52%, Recall del 58.1%, y F1-Score de 0.549 que permite priorizar contactos de marketing de manera efectiva. El modelo Logistic Regression Balanced logra un Lift de 5.7x sobre selección aleatoria, es interpretable, y los factores identificados (recencia, gasto, digitalización) son consistentes con la teoría de marketing. La validación cruzada robusta (CV AUC: 0.900 ± 0.016) garantiza generalización en producción.
 
 **Clustering**: Identificamos 2 macro-segmentos estratégicos de clientes con perfiles **moderadamente diferenciados** (Silhouette ≈ 0.26). Esta segmentación de alto nivel facilita estrategias de marketing diferenciadas a nivel estratégico, reconociendo el solapamiento entre grupos y recomendando su uso como primer filtro que puede enriquecerse con reglas de negocio adicionales para granularidad operativa según las necesidades específicas de cada campaña.
 
