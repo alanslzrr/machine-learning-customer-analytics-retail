@@ -4,10 +4,8 @@
 **Universidad Intercontinental de la Empresa (UIE)**  
 **Asignatura: Aprendizaje Automático**
 
-### Equipo de Trabajo
-- Enrique Posada Leiro
-- Yésica Ramírez Bernal
-- Yago Ramos Sánchez
+### Alumno
+
 - Alan Ariel Salazar
 
 ---
